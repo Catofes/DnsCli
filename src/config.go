@@ -12,8 +12,10 @@ type Config struct {
 	Domains   map[string]string
 }
 
-func (s *Config) Load() *Config {
-	path := os.Getenv("DnsCliConfig")
+func (s *Config) Load(path string) *Config {
+	if path == "" {
+		path = os.Getenv("DnsCliConfig")
+	}
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Load config error, %s", err)

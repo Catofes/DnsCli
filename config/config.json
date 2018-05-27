@@ -1,0 +1,12 @@
+{
+  "Providers": {
+    "GoogleCloud":{
+      "Type": "GoogleCloud",
+      "Project": "quantum-pilot-124410",
+      "SaFile": "~/Documents/ssl/suki.moe/key.json"
+    }
+  },
+  "Domains": {
+    "catofes.com": "GoogleCloud"
+  }
+}
