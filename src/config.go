@@ -14,7 +14,7 @@ type Config struct {
 
 func (s *Config) Load(path string) *Config {
 	if path == "" {
-		path = os.Getenv("DnsCliConfig")
+		path = os.Getenv("DNSCLI_CONFIG")
 	}
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
