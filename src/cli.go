@@ -4,7 +4,6 @@ import (
 	"os"
 	"fmt"
 	"sort"
-	"log"
 	"github.com/olekukonko/tablewriter"
 	"strings"
 	"strconv"
@@ -155,7 +154,7 @@ func (s *Cli) ListDomain(args []string) {
 	if v, ok := s.dnsProviders[domain]; ok {
 		records, err := v.List(domain)
 		if err != nil {
-			log.Printf("List domain err, %s.\n", err.Error())
+			fmt.Printf("List domain err, %s.\n", err.Error())
 			os.Exit(1)
 		}
 		if typeFilter != "" {
@@ -196,7 +195,7 @@ func (s *Cli) ShowRecord(args []string) {
 	}
 	records, err := s.dnsProviders[domain].List(domain)
 	if err != nil {
-		log.Printf("List domain err, %s.\n", err.Error())
+		fmt.Printf("List domain err, %s.\n", err.Error())
 		os.Exit(1)
 	}
 	typeFilter := ""
@@ -252,10 +251,10 @@ func (s *Cli) SetRecord(args []string) {
 	}
 	changes, err := provider.Present(domain, record, recordType, recordValue, recordTTL)
 	if err != nil {
-		log.Printf("Set record error, %s.\n", err.Error())
+		fmt.Printf("Set record error, %s.\n", err.Error())
 		os.Exit(1)
 	} else {
-		log.Printf("Set success.\n")
+		fmt.Printf("Set success.\n")
 		printChanges(*changes)
 	}
 }
@@ -275,10 +274,10 @@ func (s *Cli) DeleteRecord(args []string) {
 	provider := s.dnsProviders[domain]
 	changes, err := provider.Absent(domain, record, recordType)
 	if err != nil {
-		log.Printf("Delete record error, %s.\n", err.Error())
+		fmt.Printf("Delete record error, %s.\n", err.Error())
 		os.Exit(1)
 	} else {
-		log.Printf("Delete success.\n")
+		fmt.Printf("Delete success.\n")
 		printChanges(*changes)
 	}
 }
