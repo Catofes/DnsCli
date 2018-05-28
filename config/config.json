@@ -3,7 +3,7 @@
     "GoogleCloud":{
       "Type": "GoogleCloud",
       "Project": "quantum-pilot-124410",
-      "SaFile": "~/Documents/ssl/suki.moe/key.json"
+      "SaFile": "/home/herbertqiao/Documents/ssl/suki.moe/key.json"
     }
   },
   "Domains": {

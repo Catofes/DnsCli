@@ -1,9 +1,8 @@
 package dnscli
 
 import (
-	"flag"
-	"log"
 	"os"
+	"fmt"
 )
 
 var _version_ string
@@ -36,22 +35,28 @@ func (s *Cli) Load() *Cli {
 	return s
 }
 
-func Do() {
-	versionFlag := flag.Bool("v", false, "Show version.")
-	configPathFlag := flag.String("c","","Config path.")
-	flag.Parse()
-	if *versionFlag {
-		log.Printf("Git commit: %s .", _version_)
-		os.Exit(0)
+func parseOperation(args []string) []string {
+	for len(args) > 0 {
+		if args[0][0] == '-' {
+			args = args[2:]
+		} else {
+			break
+		}
 	}
-	cli := (&Cli{}).Init(*configPathFlag).Load()
-	domain := flag.NewFlagSet("domain", flag.ExitOnError)
-	if domain.Parsed() {
-		log.Print(domain.Args())
-		if domain.Arg(1) == "list" {
-			log.Print("All Domains:")
+	return args
+}
+
+func Do(configPath string) {
+	args := os.Args[1:]
+	args = parseOperation(args)
+	cli := (&Cli{}).Init(configPath).Load()
+
+	if len(args) > 0 {
+		switch args[0] {
+		case "domain":
+			fmt.Print("List All Domains:")
 			for k := range cli.dnsProviders {
-				log.Print(k)
+				fmt.Print(k)
 			}
 		}
 	}
