@@ -27,17 +27,24 @@ func (s *Cli) Init(path string) *Cli {
 }
 
 func (s *Cli) Load() *Cli {
+	tmp := make(map[string]DNSProvider)
+	for k, v := range s.Config.Providers {
+		if providerType, ok := v["Type"]; ok {
+			switch providerType {
+			case "GoogleCloud":
+				provider := NewGoogleProvider(v)
+				tmp[k] = provider
+			case "Cloudflare":
+				provider := NewCloudflareProvider(v)
+				tmp[k] = provider
+			}
+		}
+	}
 	for k, v := range s.Config.Domains {
 		domainName := k
 		providerName := v
-		if providerInfo, ok := s.Config.Providers[providerName]; ok {
-			if providerType, ok := providerInfo["Type"]; ok {
-				switch providerType {
-				case "GoogleCloud":
-					provider := NewGoogleProvider(providerInfo)
-					s.dnsProviders[domainName] = provider
-				}
-			}
+		if v, ok := tmp[providerName]; ok {
+			s.dnsProviders[domainName] = v
 		}
 	}
 	return s
@@ -271,7 +278,7 @@ func (s *Cli) DeleteRecord(args []string) {
 		log.Printf("Delete record error, %s.\n", err.Error())
 		os.Exit(1)
 	} else {
-		log.Printf("Delete success\n.")
+		log.Printf("Delete success.\n")
 		printChanges(*changes)
 	}
 }

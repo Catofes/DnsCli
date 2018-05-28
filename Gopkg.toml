@@ -33,3 +33,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/olekukonko/tablewriter"
+
+[[constraint]]
+  name = "github.com/cloudflare/cloudflare-go"
+  version = "0.8.5"

@@ -8,6 +8,12 @@
   version = "v0.23.0"
 
 [[projects]]
+  name = "github.com/cloudflare/cloudflare-go"
+  packages = ["."]
+  revision = "1f9007fbecae20711133c60519338c41cef1ffb4"
+  version = "v0.8.5"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
@@ -24,6 +30,12 @@
   name = "github.com/olekukonko/tablewriter"
   packages = ["."]
   revision = "d4647c9c7a84d847478d890b816b7d8b62b0b279"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
@@ -45,6 +57,12 @@
     "jwt"
   ]
   revision = "770e5ebd4ab27c4d70b0983674d138217f5e2c72"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/time"
+  packages = ["rate"]
+  revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
 
 [[projects]]
   branch = "master"
@@ -77,6 +95,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "32290ff047427ad02f20ccd7fb2c9a8fa9e3ee2de9767762749b11972f290036"
+  inputs-digest = "31e260f85964bb4167f8b1bb764e279abb2e06aee0ab5a459256c93e22b57aba"
   solver-name = "gps-cdcl"
   solver-version = 1
