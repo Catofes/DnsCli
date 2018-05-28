@@ -29,6 +29,7 @@
   go-tests = true
   unused-packages = true
 
+
 [[constraint]]
-  name = "github.com/xenolf/lego"
-  version = "0.4.1"
+  branch = "master"
+  name = "github.com/olekukonko/tablewriter"

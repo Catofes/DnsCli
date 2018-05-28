@@ -3,14 +3,17 @@ package dnscli
 type DNSRecord struct {
 	Name  string
 	Type  string
-	TTL   int64
+	TTL   int
 	Datas []string
 }
 
+type RecordChanges struct {
+	Add    []DNSRecord
+	Delete []DNSRecord
+}
+
 type DNSProvider interface {
-	List(domain string) ([]DNSRecord, error)
-	SetA(Record, Value string, TLL int64) error
-	SetAAAA(Record, Value string, TLL int64) error
-	SetCNAME(Record, Value string, TLL int64) error
-	SetTXT(Record, Value string, TLL int64) error
+	List(Domain string) ([]DNSRecord, error)
+	Present(Domain, Record, Type, Value string, TTL int) (*RecordChanges,error)
+	Absent(Domain, Record, Type string) (*RecordChanges,error)
 }
