@@ -1,6 +1,14 @@
 ## DnsCli
+![](https://travis-ci.org/Catofes/CertDistribution.svg?branch=master)
 
 A little cli to change dns in `Google Cloud DNS` or `Cloudflare`. Powered by golang.
+
+#### Install
+
+From source
+```
+go get -u github.com/Catofes/DnsCli/cmd/dns
+```
 
 #### Build
 
