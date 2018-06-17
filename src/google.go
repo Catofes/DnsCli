@@ -21,6 +21,9 @@ func (s *GoogleProvider) getZoneName(Domain string) string {
 	}
 	zones, _ := s.client.ManagedZones.List(s.project).Do()
 	zoneName := ""
+	if zones.ManagedZones == nil {
+		return ""
+	}
 	for _, zone := range zones.ManagedZones {
 		if zone.DnsName == Domain {
 			zoneName = zone.Name
@@ -31,6 +34,9 @@ func (s *GoogleProvider) getZoneName(Domain string) string {
 
 func (s *GoogleProvider) parseChange(chg *dns.Change) *RecordChanges {
 	recordChanges := RecordChanges{}
+	if chg == nil {
+		return &recordChanges
+	}
 	if len(chg.Additions) > 0 {
 		recordChanges.Add = make([]DNSRecord, 0)
 		for _, v := range chg.Additions {
@@ -56,6 +62,9 @@ func (s *GoogleProvider) findDeleteRecords(ZoneName, Record, Type string) ([]*dn
 		return nil, err
 	}
 	deleteRecords := make([]*dns.ResourceRecordSet, 0)
+	if recs.Rrsets == nil {
+		return deleteRecords, nil
+	}
 	for _, v := range recs.Rrsets {
 		if v.Name == Record && v.Type == Type {
 			deleteRecords = append(deleteRecords, v)
