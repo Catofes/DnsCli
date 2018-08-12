@@ -19,8 +19,12 @@ func (s *GoogleProvider) getZoneName(Domain string) string {
 	if Domain[len(Domain)-1] != '.' {
 		Domain = Domain + string('.')
 	}
-	zones, _ := s.client.ManagedZones.List(s.project).Do()
-	zoneName := ""
+	zones, err := s.client.ManagedZones.List(s.project).Do()
+	if err!=nil{
+                log.Printf("Get zone failed: %s.", err)
+                return ""
+        }
+        zoneName := ""
 	if zones.ManagedZones == nil {
 		return ""
 	}
