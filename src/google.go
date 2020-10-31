@@ -1,13 +1,14 @@
 package dnscli
 
 import (
-	"google.golang.org/api/dns/v1"
-	"golang.org/x/oauth2/google"
-	"log"
-	"io/ioutil"
 	"context"
 	"errors"
+	"io/ioutil"
+	"log"
 	"time"
+
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/dns/v1"
 )
 
 type GoogleProvider struct {
@@ -20,11 +21,11 @@ func (s *GoogleProvider) getZoneName(Domain string) string {
 		Domain = Domain + string('.')
 	}
 	zones, err := s.client.ManagedZones.List(s.project).Do()
-	if err!=nil{
-                log.Printf("Get zone failed: %s.", err)
-                return ""
-        }
-        zoneName := ""
+	if err != nil {
+		log.Printf("Get zone failed: %s.", err)
+		return ""
+	}
+	zoneName := ""
 	if zones.ManagedZones == nil {
 		return ""
 	}
@@ -154,21 +155,16 @@ func (s *GoogleProvider) List(Domain string) ([]DNSRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	found := make([]DNSRecord, 0)
-	for _, r := range recs.Rrsets {
-		if r.Type == "TXT" || r.Type == "A" || r.Type == "AAAA" || r.Type == "CNAME" {
-			found = append(found, DNSRecord{
-				Name:  r.Name,
-				Type:  r.Type,
-				TTL:   int(r.Ttl),
-				Datas: r.Rrdatas,
-			})
-		}
+	result := make([]DNSRecord, 0)
+	for _, v := range recs.Rrsets {
+		result = append(result, DNSRecord{
+			v.Name, v.Type, int(v.Ttl), v.Rrdatas,
+		})
 	}
-	return found, nil
+	return result, nil
 }
 
-func NewGoogleProvider(info map[string]string) (DNSProvider) {
+func NewGoogleProvider(info map[string]string) DNSProvider {
 	project, ok := info["Project"]
 	if !ok || project == "" {
 		log.Fatal("Google Cloud project name missing")

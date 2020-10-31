@@ -1,15 +1,16 @@
 package dnscli
 
 import (
-	"os"
 	"fmt"
-	"sort"
-	"github.com/olekukonko/tablewriter"
-	"strings"
-	"strconv"
 	"net"
-	"regexp"
+	"os"
 	"reflect"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 var _version_ string
@@ -147,9 +148,9 @@ func (s *Cli) ListDomain(args []string) {
 		os.Exit(1)
 	}
 	domain := args[0]
-	typeFilter := ""
+	typeFilters := []string{"TXT", "CNAME", "A", "AAAA"}
 	if len(args) >= 2 {
-		typeFilter = args[1]
+		typeFilters = args[1:]
 	}
 	if v, ok := s.dnsProviders[domain]; ok {
 		records, err := v.List(domain)
@@ -157,9 +158,14 @@ func (s *Cli) ListDomain(args []string) {
 			fmt.Printf("List domain err, %s.\n", err.Error())
 			os.Exit(1)
 		}
-		if typeFilter != "" {
-			records = choose(records, func(i int) bool { return records[i].Type == typeFilter }).([]DNSRecord)
-		}
+		records = choose(records, func(i int) bool {
+			for _, t := range typeFilters {
+				if records[i].Type == t {
+					return true
+				}
+			}
+			return false
+		}).([]DNSRecord)
 		printRecords(records, domain)
 		os.Exit(0)
 	} else {
