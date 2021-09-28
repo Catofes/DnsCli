@@ -37,6 +37,12 @@ Example config json file:
       "Type": "Cloudflare",
       "Email": "AAA@example.com",
       "Key": "abc2123"
+    },
+    "Huawei": {
+      "Type": "Huawei",
+      "SK": "aaa",
+      "AK": "bbb",
+      "Region": "cn-north-4"
     }
   },
   "Domains": {
