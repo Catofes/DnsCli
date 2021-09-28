@@ -37,6 +37,9 @@ func (s *Cli) Load() *Cli {
 			case "Cloudflare":
 				provider := NewCloudflareProvider(v)
 				tmp[k] = provider
+			case "Huawei":
+				provider := NewHuaweiProvider(v)
+				tmp[k] = provider
 			}
 		}
 	}
