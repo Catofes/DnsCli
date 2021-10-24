@@ -10,6 +10,9 @@ import (
 const CloudFlareAPIURL = "https://api.cloudflare.com/client/v4"
 
 type CloudflareProvider struct {
+	email  string
+	key    string
+	inited bool
 	client *cloudflare.API
 }
 
@@ -102,6 +105,18 @@ func (s *CloudflareProvider) Absent(Domain, Record, Type string) (*RecordChanges
 	return recordChanges, nil
 }
 
+func (s *CloudflareProvider) Init() error {
+	if s.inited {
+		return nil
+	}
+	if client, err := cloudflare.New(s.key, s.email); err != nil {
+		log.Fatal(err.Error())
+	} else {
+		s.client = client
+	}
+	return nil
+}
+
 func NewCloudflareProvider(info map[string]string) DNSProvider {
 	email, ok := info["Email"]
 	if !ok {
@@ -111,9 +126,8 @@ func NewCloudflareProvider(info map[string]string) DNSProvider {
 	if !ok {
 		log.Fatal("Cloudflare key not set.")
 	}
-	client, err := cloudflare.New(key, email)
-	if err != nil {
-		log.Fatal(err.Error())
+	return &CloudflareProvider{
+		email: email,
+		key:   key,
 	}
-	return &CloudflareProvider{client}
 }

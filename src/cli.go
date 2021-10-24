@@ -17,7 +17,6 @@ var _version_ string
 type Cli struct {
 	Config
 	dnsProviders map[string]DNSProvider
-	server       *dns.Server
 	tsigName     string
 	tsigSecret   string
 	tsigAlg      string
@@ -81,6 +80,7 @@ func (s *Cli) ListDomain(args []string) {
 	if len(args) >= 2 {
 		typeFilters = args[1:]
 	}
+	s.dnsProviders[domain].Init()
 	if v, ok := s.dnsProviders[domain]; ok {
 		records, err := v.List(domain)
 		if err != nil {
@@ -128,6 +128,7 @@ func (s *Cli) ShowRecord(args []string) {
 		fmt.Println("Domain not found")
 		os.Exit(1)
 	}
+	s.dnsProviders[domain].Init()
 	records, err := s.dnsProviders[domain].List(domain)
 	if err != nil {
 		fmt.Printf("List domain err, %s.\n", err.Error())
@@ -156,7 +157,7 @@ func (s *Cli) SetRecord(args []string) {
 		os.Exit(1)
 	}
 	provider := s.dnsProviders[domain]
-
+	provider.Init()
 	recordValue := args[1]
 	recordType := ""
 	recordTTL := 300
@@ -207,6 +208,7 @@ func (s *Cli) DeleteRecord(args []string) {
 		os.Exit(1)
 	}
 	provider := s.dnsProviders[domain]
+	provider.Init()
 	changes, err := provider.Absent(domain, record, recordType)
 	if err != nil {
 		fmt.Printf("Delete record error, %s.\n", err.Error())

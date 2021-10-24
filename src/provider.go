@@ -13,6 +13,7 @@ type RecordChanges struct {
 }
 
 type DNSProvider interface {
+	Init() error
 	List(Domain string) ([]DNSRecord, error)
 	Present(Domain, record, recordType, recordValue string, recordTTL int) (*RecordChanges, error)
 	Absent(Domain, record, recordType string) (*RecordChanges, error)

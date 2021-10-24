@@ -173,6 +173,9 @@ func (s *Cli) handler(w dns.ResponseWriter, r *dns.Msg) {
 
 func (s *Cli) Listen() {
 	var err error
+	for _, v := range s.dnsProviders {
+		v.Init()
+	}
 	s.tsigAlg, s.tsigName, s.tsigSecret, err = s.Config.parseTsig()
 	if err != nil {
 		log.Fatal(err)

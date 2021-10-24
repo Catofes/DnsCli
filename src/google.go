@@ -13,6 +13,8 @@ import (
 
 type GoogleProvider struct {
 	project string
+	saFile  string
+	inited  bool
 	client  *dns.Service
 }
 
@@ -153,6 +155,27 @@ func (s *GoogleProvider) List(Domain string) ([]DNSRecord, error) {
 	return result, nil
 }
 
+func (s *GoogleProvider) Init() error {
+	if s.inited {
+		return nil
+	}
+	var err error
+	dat, err := ioutil.ReadFile(s.saFile)
+	if err != nil {
+		log.Fatalf("Unable to read Service Account file: %v", err)
+	}
+	conf, err := google.JWTConfigFromJSON(dat, dns.NdevClouddnsReadwriteScope)
+	if err != nil {
+		log.Fatalf("Unable to acquire config: %v", err)
+	}
+	client := conf.Client(context.Background())
+	s.client, err = dns.New(client)
+	if err != nil {
+		log.Fatalf("Unable to create Google Cloud DNS service: %v", err)
+	}
+	return nil
+}
+
 func NewGoogleProvider(info map[string]string) DNSProvider {
 	project, ok := info["Project"]
 	if !ok || project == "" {
@@ -162,21 +185,8 @@ func NewGoogleProvider(info map[string]string) DNSProvider {
 	if !ok || saFile == "" {
 		log.Fatal("Google Cloud Service Account file missing")
 	}
-	dat, err := ioutil.ReadFile(saFile)
-	if err != nil {
-		log.Fatalf("Unable to read Service Account file: %v", err)
-	}
-	conf, err := google.JWTConfigFromJSON(dat, dns.NdevClouddnsReadwriteScope)
-	if err != nil {
-		log.Fatalf("Unable to acquire config: %v", err)
-	}
-	client := conf.Client(context.Background())
-	svc, err := dns.New(client)
-	if err != nil {
-		log.Fatalf("Unable to create Google Cloud DNS service: %v", err)
-	}
 	return &GoogleProvider{
 		project: project,
-		client:  svc,
+		saFile:  saFile,
 	}
 }

@@ -56,7 +56,7 @@ func (s *Rfc2136Provier) query(Domain, record, recordType string) ([]dns.RR, err
 			result = append(result, v)
 		}
 	}
-	return in.Answer, nil
+	return result, nil
 }
 
 func (s *Rfc2136Provier) Present(Domain, record, recordType, recordValue string, recordTTL int) (*RecordChanges, error) {
@@ -86,7 +86,7 @@ func (s *Rfc2136Provier) Present(Domain, record, recordType, recordValue string,
 		return nil, err
 	}
 	if in.Rcode != dns.RcodeSuccess {
-		return nil, errors.New(fmt.Sprintf("rfc2136 error, code: %d", in.Rcode))
+		return nil, fmt.Errorf("rfc2136 error, code: %d", in.Rcode)
 	}
 	RecordChanges := &RecordChanges{
 		Delete: RR2DNSRecord(r),
@@ -121,12 +121,16 @@ func (s *Rfc2136Provier) Absent(Domain, record, recordType string) (*RecordChang
 		return nil, err
 	}
 	if in.Rcode != dns.RcodeSuccess {
-		return nil, errors.New(fmt.Sprintf("rfc2136 error, code: %d", in.Rcode))
+		return nil, fmt.Errorf("rfc2136 error, code: %d", in.Rcode)
 	}
 	RecordChanges := &RecordChanges{
 		Delete: RR2DNSRecord(r),
 	}
 	return RecordChanges, nil
+}
+
+func (s *Rfc2136Provier) Init() error {
+	return nil
 }
 
 func NewRfc2135Provier(info map[string]string) DNSProvider {

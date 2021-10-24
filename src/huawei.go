@@ -15,6 +15,7 @@ type HuaweiProvider struct {
 	Region string
 	AK     string
 	SK     string
+	inited bool
 	client *dns.DnsClient
 }
 
@@ -139,6 +140,24 @@ func (s *HuaweiProvider) Absent(Domain, Record, Type string) (*RecordChanges, er
 	return recordChanges, nil
 }
 
+func (s *HuaweiProvider) Init() error {
+	if s.inited {
+		return nil
+	}
+	auth := basic.NewCredentialsBuilder().
+		WithAk(s.AK).WithSk(s.SK).Build()
+	s.client = dns.NewDnsClient(
+		dns.DnsClientBuilder().
+			WithRegion(region.ValueOf(s.Region)).
+			WithCredential(auth).Build())
+	if s.client != nil {
+		return nil
+	} else {
+		log.Fatal("Huawe provider init failed.")
+		return nil
+	}
+}
+
 func NewHuaweiProvider(info map[string]string) DNSProvider {
 	provider := HuaweiProvider{}
 	if v, ok := info["Endpoint"]; ok {
@@ -156,12 +175,5 @@ func NewHuaweiProvider(info map[string]string) DNSProvider {
 	} else {
 		log.Fatal("Huawei: missing SK")
 	}
-	auth := basic.NewCredentialsBuilder().
-		WithAk(provider.AK).WithSk(provider.SK).Build()
-	client := dns.NewDnsClient(
-		dns.DnsClientBuilder().
-			WithRegion(region.ValueOf(provider.Region)).
-			WithCredential(auth).Build())
-	provider.client = client
 	return &provider
 }
