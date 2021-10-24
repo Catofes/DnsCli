@@ -80,8 +80,8 @@ func (s *Cli) ListDomain(args []string) {
 	if len(args) >= 2 {
 		typeFilters = args[1:]
 	}
-	s.dnsProviders[domain].Init()
 	if v, ok := s.dnsProviders[domain]; ok {
+		s.dnsProviders[domain].Init()
 		records, err := v.List(domain)
 		if err != nil {
 			fmt.Printf("List domain err, %s.\n", err.Error())
