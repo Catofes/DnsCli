@@ -4,10 +4,20 @@
       "Type": "GoogleCloud",
       "Project": "quantum-pilot-124410",
       "SaFile": "/home/herbertqiao/Documents/ssl/suki.moe/key.json"
+    },
+    "RFC2136":{
+      "Type": "Rfc2136",
+      "Host":"127.0.0.1:53",
+      "TsigName":"xxxx.",
+      "TsigAlg":"hmac-sha1.",
+      "Tsig":"xxxxxxxx"
     }
   },
   "Domains": {
     "catofes.com": "GoogleCloud",
-    "suki.moe": "GoogleCloud"
-  }
+    "suki.moe": "GoogleCloud",
+    "libssh.com": "RFC2136"
+  },
+  "Listen":"[::]:53",
+  "Tsig":"hmac-sha1:xxxx:xxxxxx"
 }

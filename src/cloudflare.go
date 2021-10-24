@@ -2,6 +2,7 @@ package dnscli
 
 import (
 	"log"
+
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/pkg/errors"
 )
@@ -13,21 +14,27 @@ type CloudflareProvider struct {
 }
 
 func (s *CloudflareProvider) List(Domain string) ([]DNSRecord, error) {
+	Domain = defqdn(Domain)
 	id, err := s.client.ZoneIDByName(Domain)
 	if err != nil {
 		return nil, err
 	}
 	records, err := s.client.DNSRecords(id, cloudflare.DNSRecord{})
+	if err != nil {
+		return nil, err
+	}
 	result := make([]DNSRecord, 0)
 	for _, v := range records {
 		result = append(result, DNSRecord{
-			v.Name, v.Type, v.TTL, []string{v.Content},
+			fqdn(v.Name), v.Type, v.TTL, []string{v.Content},
 		})
 	}
 	return result, nil
 }
 
 func (s *CloudflareProvider) Present(Domain, Record, Type, Value string, TTL int) (*RecordChanges, error) {
+	Domain = defqdn(Domain)
+	Record = defqdn(Record)
 	id, err := s.client.ZoneIDByName(Domain)
 	if err != nil {
 		return nil, err
@@ -46,7 +53,7 @@ func (s *CloudflareProvider) Present(Domain, Record, Type, Value string, TTL int
 			recordChanges.Delete = make([]DNSRecord, 0)
 		}
 		recordChanges.Delete = append(recordChanges.Delete, DNSRecord{
-			v.Name, v.Type, v.TTL, []string{v.Content},
+			fqdn(v.Name), v.Type, v.TTL, []string{v.Content},
 		})
 	}
 	_, err = s.client.CreateDNSRecord(id, cloudflare.DNSRecord{
@@ -59,13 +66,15 @@ func (s *CloudflareProvider) Present(Domain, Record, Type, Value string, TTL int
 	if err != nil {
 		return recordChanges, err
 	}
-	recordChanges.Add = []DNSRecord{DNSRecord{
-		Record, Type, TTL, []string{Value},
+	recordChanges.Add = []DNSRecord{{
+		fqdn(Record), Type, TTL, []string{Value},
 	}}
 	return recordChanges, nil
 }
 
 func (s *CloudflareProvider) Absent(Domain, Record, Type string) (*RecordChanges, error) {
+	Domain = defqdn(Domain)
+	Record = defqdn(Record)
 	id, err := s.client.ZoneIDByName(Domain)
 	if err != nil {
 		return nil, err
@@ -75,7 +84,7 @@ func (s *CloudflareProvider) Absent(Domain, Record, Type string) (*RecordChanges
 	if err != nil {
 		return nil, err
 	}
-	if len(records)==0{
+	if len(records) == 0 {
 		return nil, errors.New("records not found")
 	}
 	for _, v := range records {
@@ -87,13 +96,13 @@ func (s *CloudflareProvider) Absent(Domain, Record, Type string) (*RecordChanges
 			recordChanges.Delete = make([]DNSRecord, 0)
 		}
 		recordChanges.Delete = append(recordChanges.Delete, DNSRecord{
-			v.Name, v.Type, v.TTL, []string{v.Content},
+			fqdn(v.Name), v.Type, v.TTL, []string{v.Content},
 		})
 	}
 	return recordChanges, nil
 }
 
-func NewCloudflareProvider(info map[string]string) (DNSProvider) {
+func NewCloudflareProvider(info map[string]string) DNSProvider {
 	email, ok := info["Email"]
 	if !ok {
 		log.Fatal("Cloudflare email not set.")

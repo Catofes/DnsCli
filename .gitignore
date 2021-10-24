@@ -2,3 +2,4 @@ vendor
 build
 .idea
 config/my.json
+.vscode

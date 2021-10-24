@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
+	"github.com/miekg/dns"
 )
 
 var _version_ string
@@ -18,6 +17,10 @@ var _version_ string
 type Cli struct {
 	Config
 	dnsProviders map[string]DNSProvider
+	server       *dns.Server
+	tsigName     string
+	tsigSecret   string
+	tsigAlg      string
 }
 
 func (s *Cli) Init(path string) *Cli {
@@ -40,11 +43,14 @@ func (s *Cli) Load() *Cli {
 			case "Huawei":
 				provider := NewHuaweiProvider(v)
 				tmp[k] = provider
+			case "Rfc2136":
+				provider := NewRfc2135Provier(v)
+				tmp[k] = provider
 			}
 		}
 	}
 	for k, v := range s.Config.Domains {
-		domainName := k
+		domainName := dns.Fqdn(k)
 		providerName := v
 		if v, ok := tmp[providerName]; ok {
 			s.dnsProviders[domainName] = v
@@ -65,92 +71,12 @@ func (s *Cli) PrintDomains() {
 	}
 }
 
-func compareRecord(l, r DNSRecord) bool {
-	reserveStringSplice := func(s []string) []string {
-		for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-			s[i], s[j] = s[j], s[i]
-		}
-		return s
-	}
-	reserveDomain := func(s string) string {
-		t := strings.Split(s, ".")
-		reserveStringSplice(t)
-		return strings.Join(t, ".")
-	}
-	return strings.Compare(reserveDomain(l.Name), reserveDomain(r.Name)) <= 0
-}
-
-func sortRecord(records []DNSRecord) {
-	sort.Slice(records, func(i, j int) bool {
-		return compareRecord(records[i], records[j])
-	})
-}
-
-func printRecords(records []DNSRecord, domain string) {
-	sortRecord(records)
-	fmt.Printf("Records in %s\n", domain)
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Value", "Type", "TTL"})
-	table.SetColumnAlignment([]int{tablewriter.ALIGN_RIGHT, tablewriter.ALIGN_LEFT,
-		tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER})
-	table.SetAutoWrapText(false)
-	for _, v := range records {
-		value := strings.Join(v.Datas, " ")
-		if len(value) > 48 {
-			value = value[:48] + string("...")
-		}
-		table.Append([]string{v.Name, value, v.Type, strconv.Itoa(v.TTL)})
-	}
-	table.Render()
-}
-
-func printChanges(change RecordChanges) {
-	sortRecord(change.Add)
-	sortRecord(change.Delete)
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Operate", "Name", "Value", "Type", "TTL"})
-	table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT, tablewriter.ALIGN_RIGHT, tablewriter.ALIGN_LEFT,
-		tablewriter.ALIGN_LEFT, tablewriter.ALIGN_CENTER})
-	table.SetAutoWrapText(false)
-	for _, v := range change.Add {
-		value := strings.Join(v.Datas, " ")
-		if len(value) > 48 {
-			value = value[:48] + string("...")
-		}
-		table.Append([]string{"ADD", v.Name, value, v.Type, strconv.Itoa(v.TTL)})
-	}
-	for _, v := range change.Delete {
-		value := strings.Join(v.Datas, " ")
-		if len(value) > 48 {
-			value = value[:48] + string("...")
-		}
-		table.Append([]string{"DEL", v.Name, value, v.Type, strconv.Itoa(v.TTL)})
-	}
-	table.Render()
-}
-
-func choose(slice interface{}, filter func(i int) bool) interface{} {
-	if t := reflect.TypeOf(slice); t.Kind() != reflect.Slice && t.Kind() != reflect.Array {
-		return nil
-	}
-	sliceType := reflect.TypeOf(slice)
-	result := reflect.MakeSlice(sliceType, 0, reflect.ValueOf(slice).Len())
-	for i := 0; i < reflect.ValueOf(slice).Len(); i++ {
-		if filter(i) {
-			result = reflect.Append(result, reflect.ValueOf(slice).Index(i))
-		}
-	}
-	ptr := reflect.New(sliceType)
-	ptr.Elem().Set(result)
-	return ptr.Elem().Interface()
-}
-
 func (s *Cli) ListDomain(args []string) {
 	if len(args) <= 0 {
 		fmt.Println("Empty domain.")
 		os.Exit(1)
 	}
-	domain := args[0]
+	domain := dns.Fqdn(args[0])
 	typeFilters := []string{"TXT", "CNAME", "A", "AAAA"}
 	if len(args) >= 2 {
 		typeFilters = args[1:]
@@ -196,7 +122,7 @@ func (s *Cli) ShowRecord(args []string) {
 		fmt.Println("Empty record.")
 		os.Exit(1)
 	}
-	record := args[0]
+	record := dns.Fqdn(args[0])
 	domain := s.findDomain(record)
 	if domain == "" {
 		fmt.Println("Domain not found")
@@ -223,7 +149,7 @@ func (s *Cli) SetRecord(args []string) {
 		fmt.Println("Please input record value [type] [ttl].")
 		os.Exit(1)
 	}
-	record := args[0]
+	record := dns.Fqdn(args[0])
 	domain := s.findDomain(record)
 	if domain == "" {
 		fmt.Println("Domain not found")
@@ -273,7 +199,7 @@ func (s *Cli) DeleteRecord(args []string) {
 		fmt.Println("Please input record type.")
 		os.Exit(1)
 	}
-	record := args[0]
+	record := dns.Fqdn(args[0])
 	recordType := args[1]
 	domain := s.findDomain(record)
 	if domain == "" {
@@ -333,6 +259,8 @@ func Do(configPath string) {
 			cli.DeleteRecord(args[1:])
 		case "del":
 			cli.DeleteRecord(args[1:])
+		case "daemon":
+			cli.Listen()
 		default:
 			fmt.Printf("Command not found. \n Please input domain, list, get, set or delete.")
 		}

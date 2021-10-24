@@ -66,7 +66,7 @@ func (s *HuaweiProvider) Present(Domain, Record, Type, Value string, TTL int) (*
 	}
 	recordChanges := &RecordChanges{}
 	for _, v := range *records.Recordsets {
-		if strings.Compare(Record, strings.Trim(*v.Name, ".")) == 0 && strings.Compare(Type, *v.Type) == 0 {
+		if strings.Compare(Record, *v.Name) == 0 && strings.Compare(Type, *v.Type) == 0 {
 			_, err := s.client.DeleteRecordSet(&model.DeleteRecordSetRequest{
 				ZoneId:      *v.ZoneId,
 				RecordsetId: *v.Id,
@@ -95,7 +95,7 @@ func (s *HuaweiProvider) Present(Domain, Record, Type, Value string, TTL int) (*
 	if err != nil {
 		return recordChanges, err
 	}
-	recordChanges.Add = []DNSRecord{DNSRecord{
+	recordChanges.Add = []DNSRecord{{
 		Record, Type, TTL, []string{Value},
 	}}
 	return recordChanges, nil
@@ -120,7 +120,7 @@ func (s *HuaweiProvider) Absent(Domain, Record, Type string) (*RecordChanges, er
 	}
 	recordChanges := &RecordChanges{}
 	for _, v := range *records.Recordsets {
-		if strings.Compare(Record, strings.Trim(*v.Name, ".")) == 0 && strings.Compare(Type, *v.Type) == 0 {
+		if strings.Compare(Record, *v.Name) == 0 && strings.Compare(Type, *v.Type) == 0 {
 			_, err := s.client.DeleteRecordSet(&model.DeleteRecordSetRequest{
 				ZoneId:      *v.ZoneId,
 				RecordsetId: *v.Id,

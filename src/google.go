@@ -17,9 +17,6 @@ type GoogleProvider struct {
 }
 
 func (s *GoogleProvider) getZoneName(Domain string) string {
-	if Domain[len(Domain)-1] != '.' {
-		Domain = Domain + string('.')
-	}
 	zones, err := s.client.ManagedZones.List(s.project).Do()
 	if err != nil {
 		log.Printf("Get zone failed: %s.", err)
@@ -83,13 +80,8 @@ func (s *GoogleProvider) Present(Domain, Record, Type, Value string, TTL int) (*
 	if zoneName == "" {
 		return nil, errors.New("zone name not found")
 	}
-	if Record[len(Record)-1] != '.' {
-		Record = Record + string('.')
-	}
 	if Type == "CNAME" {
-		if Value[len(Value)-1] != '.' {
-			Value = Value + string('.')
-		}
+		Value = fqdn(Value)
 	}
 	rec := dns.ResourceRecordSet{
 		Name:    Record,
@@ -125,9 +117,6 @@ func (s *GoogleProvider) Absent(Domain, Record, Type string) (*RecordChanges, er
 	zoneName := s.getZoneName(Domain)
 	if zoneName == "" {
 		return nil, errors.New("zone name not found")
-	}
-	if Record[len(Record)-1] != '.' {
-		Record = Record + string('.')
 	}
 	deleteRecords, err := s.findDeleteRecords(zoneName, Record, Type)
 	if err != nil {

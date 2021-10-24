@@ -8,6 +8,7 @@ require (
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.0.63
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mattn/go-runewidth v0.0.2 // indirect
+	github.com/miekg/dns v1.1.43
 	github.com/olekukonko/tablewriter v0.0.0-20180506121414-d4647c9c7a84
 	github.com/pkg/errors v0.8.0
 	github.com/stretchr/testify v1.6.1 // indirect
